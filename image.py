@@ -32,7 +32,7 @@ else:
 def affine_transformations(image):
     rows, cols, ch = image.shape
 
-    # 1. Зменшення в 2 рази по осі OX і збільшення в 3 рази по осі OY
+    # 1. Зменшення в 1/2 рази по осі OX і збільшення в 3 рази по осі OY
     scale_matrix = np.array([[0.5, 0, 0], [0, 3, 0], [0, 0, 1]], dtype=np.float32)
     scaled_image = cv2.warpPerspective(image, scale_matrix, (cols, rows))
 
@@ -45,20 +45,20 @@ def affine_transformations(image):
     translated_image = cv2.warpPerspective(image, translation_matrix, (cols, rows))
 
     # 4. Зміщення на 60° по осі OY (фактично поворот на 60°)
-    angle = np.radians(60)
-    cosine = np.cos(angle)
-    sine = np.sin(angle)
-    rotation_matrix_60 = np.array([[cosine, -sine, (1 - cosine) * cols / 2 + sine * rows / 2],
-                                   [sine, cosine, (1 - cosine) * rows / 2 - sine * cols / 2],
+    angle_60 = np.radians(60)
+    cosine_60 = np.cos(angle_60)
+    sine_60 = np.sin(angle_60)
+    rotation_matrix_60 = np.array([[cosine_60, -sine_60, (1 - cosine_60) * cols / 2 + sine_60 * rows / 2],
+                                   [sine_60, cosine_60, (1 - cosine_60) * rows / 2 - sine_60 * cols / 2],
                                    [0, 0, 1]], dtype=np.float32)
     rotated_image_60 = cv2.warpPerspective(image, rotation_matrix_60, (cols, rows))
 
     # 5. Поворот на 30°
-    angle = np.radians(30)
-    cosine = np.cos(angle)
-    sine = np.sin(angle)
-    rotation_matrix_30 = np.array([[cosine, -sine, (1 - cosine) * cols / 2 + sine * rows / 2],
-                                   [sine, cosine, (1 - cosine) * rows / 2 - sine * cols / 2],
+    angle_30 = np.radians(30)
+    cosine_30 = np.cos(angle_30)
+    sine_30 = np.sin(angle_30)
+    rotation_matrix_30 = np.array([[cosine_30, -sine_30, (1 - cosine_30) * cols / 2 + sine_30 * rows / 2],
+                                   [sine_30, cosine_30, (1 - cosine_30) * rows / 2 - sine_30 * cols / 2],
                                    [0, 0, 1]], dtype=np.float32)
     rotated_image_30 = cv2.warpPerspective(image, rotation_matrix_30, (cols, rows))
 
