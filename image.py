@@ -5,21 +5,19 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Завантаження зображення
-def download_image(image_url, save_path):
-    response = requests.get(image_url)
-    if response.status_code == 200:
-        image = Image.open(BytesIO(response.content))
-        image.save(save_path)
-        print(f"Image downloaded and saved to {save_path}")
-    else:
-        print(f"Failed to download image. Status code: {response.status_code}")
-    return save_path
-
-# Завантаження зображення з інтернету
+# URL зображення
 image_url = 'https://images.pexels.com/photos/414612/pexels-photo-414612.jpeg'
-image_path = 'downloaded_image.jpg'
-download_image(image_url, image_path)
+
+# Завантаження зображення
+response = requests.get(image_url)
+if response.status_code == 200:
+    image = Image.open(BytesIO(response.content))
+    # Збереження зображення на локальний диск
+    image_path = 'downloaded_image.jpg'
+    image.save(image_path)
+    print(f"Image downloaded and saved to {image_path}")
+else:
+    print(f"Failed to download image. Status code: {response.status_code}")
 
 # Завантаження зображення за допомогою OpenCV
 image = cv2.imread(image_path)
@@ -28,11 +26,11 @@ if image is None:
 else:
     print("Image loaded successfully!")
 
-# Афінні перетворення
-def affine_transformations(image):
+# Перетворення для афінних перетворень
+if image is not None:
     rows, cols, ch = image.shape
 
-    # 1. Зменшення в 1/2 рази по осі OX і збільшення в 3 рази по осі OY
+    # 1. Зменшення в 2 рази по осі OX і збільшення в 3 рази по осі OY
     scale_matrix = np.array([[0.5, 0, 0], [0, 3, 0], [0, 0, 1]], dtype=np.float32)
     scaled_image = cv2.warpPerspective(image, scale_matrix, (cols, rows))
 
@@ -45,31 +43,26 @@ def affine_transformations(image):
     translated_image = cv2.warpPerspective(image, translation_matrix, (cols, rows))
 
     # 4. Зміщення на 60° по осі OY (фактично поворот на 60°)
-    angle_60 = np.radians(60)
-    cosine_60 = np.cos(angle_60)
-    sine_60 = np.sin(angle_60)
-    rotation_matrix_60 = np.array([[cosine_60, -sine_60, (1 - cosine_60) * cols / 2 + sine_60 * rows / 2],
-                                   [sine_60, cosine_60, (1 - cosine_60) * rows / 2 - sine_60 * cols / 2],
+    angle = np.radians(60)
+    cosine = np.cos(angle)
+    sine = np.sin(angle)
+    rotation_matrix_60 = np.array([[cosine, -sine, (1 - cosine) * cols / 2 + sine * rows / 2],
+                                   [sine, cosine, (1 - cosine) * rows / 2 - sine * cols / 2],
                                    [0, 0, 1]], dtype=np.float32)
     rotated_image_60 = cv2.warpPerspective(image, rotation_matrix_60, (cols, rows))
 
     # 5. Поворот на 30°
-    angle_30 = np.radians(30)
-    cosine_30 = np.cos(angle_30)
-    sine_30 = np.sin(angle_30)
-    rotation_matrix_30 = np.array([[cosine_30, -sine_30, (1 - cosine_30) * cols / 2 + sine_30 * rows / 2],
-                                   [sine_30, cosine_30, (1 - cosine_30) * rows / 2 - sine_30 * cols / 2],
+    angle = np.radians(30)
+    cosine = np.cos(angle)
+    sine = np.sin(angle)
+    rotation_matrix_30 = np.array([[cosine, -sine, (1 - cosine) * cols / 2 + sine * rows / 2],
+                                   [sine, cosine, (1 - cosine) * rows / 2 - sine * cols / 2],
                                    [0, 0, 1]], dtype=np.float32)
     rotated_image_30 = cv2.warpPerspective(image, rotation_matrix_30, (cols, rows))
 
     # 6. Об'єднання всіх перетворень в одну матрицю та застосування її до зображення
     combined_matrix = scale_matrix @ reflection_matrix @ rotation_matrix_60 @ rotation_matrix_30
     combined_image = cv2.warpPerspective(image, combined_matrix, (cols, rows))
-
-    return scaled_image, reflected_image, translated_image, rotated_image_60, rotated_image_30, combined_image
-
-if image is not None:
-    scaled_image, reflected_image, translated_image, rotated_image_60, rotated_image_30, combined_image = affine_transformations(image)
 
     # Відображення результатів
     plt.figure(figsize=(12, 8))
@@ -82,3 +75,61 @@ if image is not None:
     plt.subplot(236), plt.imshow(cv2.cvtColor(combined_image, cv2.COLOR_BGR2RGB)), plt.title('Combined Transformation')
 
     plt.show()
+
+# Векторні перетворення
+# Вихідний вектор
+x = np.array([[2], [1]])
+
+# 1. Зменшити вектор x в 1/2 рази по вісі OX та збільшити в 3 рази по вісі OY
+scaling_matrix = np.array([
+    [0.5, 0],
+    [0, 3]
+])
+scaled_x = np.dot(scaling_matrix, x)
+print("Scaled vector:")
+print(scaled_x)
+
+# 2. Відобразити вектор x відносно початку координат
+reflection_matrix = np.array([
+    [-1, 0],
+    [0, -1]
+])
+reflected_x = np.dot(reflection_matrix, x)
+print("Reflected vector:")
+print(reflected_x)
+
+# 3. Перенесення на -3 по осі OX та на 1 по осі OY
+x_homogeneous = np.array([[2], [1], [1]])  # Додавання однорідної координати
+translation_matrix = np.array([
+    [1, 0, -3],
+    [0, 1,  1],
+    [0, 0,  1]
+], dtype=np.float32)
+translated_x = np.dot(translation_matrix, x_homogeneous)
+print("Translated vector:")
+print(translated_x[:2])  # Відкидання однорідної координати
+
+# 4. Зміщення вектор x на 60° по вісі OY
+shear_matrix_60 = np.array([
+    [1, 0],
+    [np.tan(np.radians(60)), 1]
+])
+sheared_x = np.dot(shear_matrix_60, x)
+print("Sheared vector by 60° along OY:")
+print(sheared_x)
+
+# 5. Поворот вектора x на 30°
+theta = np.radians(30)
+rotation_matrix_30 = np.array([
+    [np.cos(theta), -np.sin(theta)],
+    [np.sin(theta), np.cos(theta)]
+])
+rotated_x_30 = np.dot(rotation_matrix_30, x)
+print("Rotated vector by 30°:")
+print(rotated_x_30)
+
+# 6. Об'єднання перетворень з кроків 1, 2, 4, 5 в одну матрицю та застосування її до вектора x.
+combined_matrix = scaling_matrix @ reflection_matrix @ shear_matrix_60 @ rotation_matrix_30
+transformed_vector = np.dot(combined_matrix, x)
+print("Transformed vector with combined transformations:")
+print(transformed_vector)
